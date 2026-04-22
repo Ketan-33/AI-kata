@@ -1,0 +1,71 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  episodes  Episode[]
+}
+
+model Episode {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  status      String   @default("draft") // draft, outlined, scripted, recorded, published
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  outline     Outline?
+  script      Script?
+  questions   Question[]
+}
+
+model Outline {
+  id        String   @id @default(uuid())
+  content   String   // JSON string of outline structure
+  prompt    String?  // Original AI prompt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  episodeId String   @unique
+  episode   Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+}
+
+model Script {
+  id        String   @id @default(uuid())
+  content   String   // Full script text
+  prompt    String?  // Original AI prompt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  episodeId String   @unique
+  episode   Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  text      String
+  category  String?  // e.g., "opening", "technical", "closing"
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  episodeId String
+  episode   Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+}
