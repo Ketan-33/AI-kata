@@ -29,12 +29,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API routes will be added here
-// app.use('/api/auth', require('./routes/auth'));
-// app.use('/api/episodes', require('./routes/episodes'));
-// app.use('/api/outlines', require('./routes/outlines'));
-// app.use('/api/scripts', require('./routes/scripts'));
-// app.use('/api/questions', require('./routes/questions'));
+// API routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/episodes', require('./routes/episodes'));
+app.use('/api/guests', require('./routes/guests'));
+app.use('/api/scripts', require('./routes/scripts'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // 404 handler
 app.use((req, res, next) => {
