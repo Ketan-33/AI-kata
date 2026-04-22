@@ -1,0 +1,98 @@
+// This is your Prisma schema file
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  episodes  Episode[]
+  guests    Guest[]
+}
+
+model Guest {
+  id        String   @id @default(uuid())
+  name      String
+  bio       String?
+  avatar    String?  // URL to avatar image
+  expertise String?  // JSON array of expertise tags
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  episodes  Episode[]
+}
+
+model Episode {
+  id            String    @id @default(uuid())
+  title         String
+  episodeNumber Int?
+  description   String?
+  status        String    @default("draft") // draft, scripted, published
+  scheduledDate DateTime?
+  tags          String?   // JSON array of tags
+  coverArt      String?   // URL to cover image
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  ownerId       String
+  owner         User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  guestId       String?
+  guest         Guest?    @relation(fields: [guestId], references: [id], onDelete: SetNull)
+
+  outline       Outline?
+  script        Script?
+  questions     Question[]
+}
+
+model Outline {
+  id        String   @id @default(uuid())
+  content   String   // JSON string of outline structure
+  prompt    String?  // Original AI prompt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  episodeId String   @unique
+  episode   Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+}
+
+model Script {
+  id          String   @id @default(uuid())
+  content     String   // Full script text
+  contentType String   @default("full_script") // full_script, interview_questions, outline, show_notes
+  tone        String?  // casual, professional, storytelling, educational
+  length      String?  // short, medium, long
+  prompt      String?  // Custom prompt/context
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  episodeId   String   @unique
+  episode     Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  text      String
+  category  String?  // e.g., "opening", "technical", "closing"
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  episodeId String
+  episode   Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+}
